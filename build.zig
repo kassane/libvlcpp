@@ -6,11 +6,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    b.installDirectory(.{
-        .source_dir = "vlcpp",
-        .install_dir = .header,
-        .install_subdir = "vlcpp",
+    const libvlcpp = b.addStaticLibrary(.{
+        .name = "vlcpp",
+        .optimize = optimize,
+        .target = target,
     });
+    libvlcpp.installHeadersDirectory("vlcpp", "vlcpp");
 
     const examples = b.option([]const u8, "Example", "Build example: [helloworld, imem, renderers, test-vlcpp]") orelse return;
     if (std.mem.eql(u8, examples, "helloworld"))
@@ -54,11 +55,12 @@ fn make_example(b: *std.Build, info: BuildInfo) void {
         .optimize = info.mode,
     });
     example.disable_sanitize_c = true;
+    if (info.mode != .Debug)
+        example.strip = true;
     example.addIncludePath(".");
     example.addCSourceFile(info.path, &.{
         "-Wall",
         "-Wextra",
-        "-Werror",
     });
 
     if (info.target.isDarwin()) {
