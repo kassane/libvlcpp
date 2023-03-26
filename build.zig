@@ -11,6 +11,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .target = target,
     });
+    libvlcpp.addCSourceFile("test/empty.cpp", &.{});
+    libvlcpp.install();
     libvlcpp.installHeadersDirectory("vlcpp", "vlcpp");
 
     const examples = b.option([]const u8, "Example", "Build example: [helloworld, imem, renderers, test-vlcpp]") orelse return;
