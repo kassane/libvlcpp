@@ -252,7 +252,7 @@ public:
             unsigned int i_line;
             libvlc_log_get_context( ctx, &psz_module, &psz_file, &i_line );
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__MINGW32__)
             VaCopy vaCopy(va);
             int len = vsnprintf(nullptr, 0, format, vaCopy.va);
             if (len < 0)
