@@ -6,7 +6,13 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const examples = b.option([]const u8, "Example", "Build example: [helloworld, imem, renderers]") orelse "test-vlcpp";
+    b.installDirectory(.{
+        .source_dir = "vlcpp",
+        .install_dir = .header,
+        .install_subdir = "vlcpp",
+    });
+
+    const examples = b.option([]const u8, "Example", "Build example: [helloworld, imem, renderers, test-vlcpp]") orelse return;
     if (std.mem.eql(u8, examples, "helloworld"))
         make_example(b, .{
             .mode = optimize,
@@ -78,7 +84,6 @@ fn make_example(b: *std.Build, info: BuildInfo) void {
     example.linkLibCpp();
     if (!std.mem.startsWith(u8, "test", info.name))
         example.install();
-    example.installHeadersDirectory("vlcpp", "vlcpp");
 
     const run_cmd = example.run();
     run_cmd.step.dependOn(b.getInstallStep());
