@@ -1,0 +1,32 @@
+name: MacOS
+
+on:
+  push:
+    paths:
+      - '**.zig'
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: master
+      
+      - name: Install deps
+        env:
+          VLC_PLUGIN_PATH: /Applications/VLC.app/Contents/MacOS/lib
+        run: |
+            brew install --cask VLC && \
+            sudo ln -s /Applications/VLC.app/Contents/MacOS/include/vlc /usr/local/include/ && \
+            sudo ln -s /Applications/VLC.app/Contents/MacOS/lib/* /usr/local/lib/
+
+      - name: Build
+        run: zig build -fsummary -freference-trace
