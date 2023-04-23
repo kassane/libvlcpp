@@ -26,4 +26,4 @@ jobs:
             sudo apt install libvlc-dev -y
 
       - name: Build
-        run: zig build -fsummary -freference-trace
+        run: zig build --summary all -freference-trace

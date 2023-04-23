@@ -11,8 +11,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .target = target,
     });
-    libvlcpp.addCSourceFile("test/empty.cpp", &.{});
-    libvlcpp.install();
+    libvlcpp.addCSourceFile(.{ .file = .{ .path = "test/empty.cpp" }, .flags = &.{} });
+    b.installArtifact(libvlcpp);
     libvlcpp.installHeadersDirectory("vlcpp", "vlcpp");
 
     const examples = b.option([]const u8, "Example", "Build example: [helloworld, imem, renderers, test-vlcpp]") orelse return;
@@ -56,19 +56,21 @@ fn make_example(b: *std.Build, info: BuildInfo) void {
         .target = info.target,
         .optimize = info.mode,
     });
-    example.disable_sanitize_c = true;
     if (info.mode != .Debug)
         example.strip = true;
-    example.addIncludePath(".");
-    example.addCSourceFile(info.path, &.{
-        "-Wall",
-        "-Wextra",
+    example.addIncludePath(.{ .path = "." });
+    example.addCSourceFile(.{
+        .file = .{ .path = info.path },
+        .flags = &.{
+            "-Wall",
+            "-Wextra",
+        },
     });
 
     if (info.target.isDarwin()) {
         // Custom path
-        example.addIncludePath("/usr/local/include");
-        example.addLibraryPath("/usr/local/lib");
+        example.addIncludePath(.{ .path = "/usr/local/include" });
+        example.addLibraryPath(.{ .path = "/usr/local/lib" });
         // Link Frameworks
         example.linkFramework("Foundation");
         example.linkFramework("Cocoa");
@@ -78,8 +80,8 @@ fn make_example(b: *std.Build, info: BuildInfo) void {
         example.linkSystemLibrary("vlc");
     } else if (info.target.isWindows()) {
         // msys2/clang - CI
-        example.addIncludePath(msys2Inc(info.target));
-        example.addLibraryPath(msys2Lib(info.target));
+        example.addIncludePath(.{ .path = msys2Inc(info.target) });
+        example.addLibraryPath(.{ .path = msys2Lib(info.target) });
         example.linkSystemLibraryName("vlc.dll");
         example.want_lto = false;
     } else {
@@ -87,9 +89,9 @@ fn make_example(b: *std.Build, info: BuildInfo) void {
     }
     example.linkLibCpp();
     if (!std.mem.startsWith(u8, "test", info.name))
-        example.install();
+        b.installArtifact(example);
 
-    const run_cmd = example.run();
+    const run_cmd = b.addRunArtifact(example);
     run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
@@ -106,14 +108,14 @@ fn checkVersion() bool {
         return false;
     }
 
-    const needed_version = std.SemanticVersion.parse("0.11.0-dev.2191") catch unreachable;
+    const needed_version = std.SemanticVersion.parse("0.11.0") catch unreachable;
     const version = builtin.zig_version;
     const order = version.order(needed_version);
     return order != .lt;
 }
 
 const BuildInfo = struct {
-    mode: std.builtin.Mode,
+    mode: std.builtin.OptimizeMode,
     target: std.zig.CrossTarget,
     name: []const u8,
     path: []const u8,

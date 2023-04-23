@@ -29,4 +29,4 @@ jobs:
             sudo ln -s /Applications/VLC.app/Contents/MacOS/lib/* /usr/local/lib/
 
       - name: Build
-        run: zig build -fsummary -freference-trace
+        run: zig build --summary all -freference-trace

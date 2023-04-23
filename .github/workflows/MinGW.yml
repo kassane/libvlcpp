@@ -48,11 +48,11 @@ jobs:
         if: ${{ matrix.arch == 'i686' }}
         run: |
             cd /C/_
-            zig build -fsummary -freference-trace -Dtarget=x86-windows-gnu
+            zig build --summary all -freference-trace -Dtarget=x86-windows-gnu
         
       - name: Build & Tests (x86_x64)
         shell: msys2 {0}
         if: ${{ matrix.arch == 'x86_64' }}
         run: |
             cd /C/_
-            zig build -fsummary -freference-trace -Dtarget=native-windows-gnu
+            zig build --summary all -freference-trace -Dtarget=native-windows-gnu
